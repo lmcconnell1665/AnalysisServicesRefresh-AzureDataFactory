@@ -1,5 +1,5 @@
 {
-    "name": "ProcessAzureAS MSI",
+    "name": "Analysis Services Refresh",
     "properties": {
         "activities": [
             {
