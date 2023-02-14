@@ -1,0 +1,84 @@
+{
+    "name": "Refresh_PBI_Dataset",
+    "properties": {
+        "description": "Refreshes a power bi dataset using specified parameters",
+        "activities": [
+            {
+                "name": "StartRefresh",
+                "type": "WebActivity",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": {
+                        "value": "https://api.powerbi.com/v1.0/myorg/groups/@{pipeline().parameters.workspace_id}/datasets/@{pipeline().parameters.dataset_id}/refreshes",
+                        "type": "Expression"
+                    },
+                    "method": "POST",
+                    "body": {
+                        "type": "full"
+                    },
+                    "authentication": {
+                        "resource": "https://analysis.windows.net/powerbi/api",
+                        "credential": {
+                            "referenceName": "PowerBI_Admin",
+                            "type": "CredentialReference"
+                        },
+                        "userTenant": "b3d2bfa8-536e-4864-8ada-5f93cc8faea3"
+                    }
+                }
+            },
+            {
+                "name": "If completed successfully",
+                "type": "IfCondition",
+                "dependsOn": [
+                    {
+                        "activity": "StartRefresh",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@equals(activity('StartRefresh').output.pipelineReturnValue.status, 'Completed')",
+                        "type": "Expression"
+                    },
+                    "ifFalseActivities": [
+                        {
+                            "name": "Fail refresh",
+                            "type": "Fail",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "message": "Power BI dataset failed to refresh",
+                                "errorCode": "400"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "parameters": {
+            "workspace_id": {
+                "type": "string",
+                "defaultValue": "e4860bd5-0485-4876-b6fa-75712acb9c75"
+            },
+            "dataset_id": {
+                "type": "string",
+                "defaultValue": "aa9707a8-1ef1-41a7-80b7-22acaf284cea"
+            }
+        },
+        "folder": {
+            "name": "2 - Utility & Template Pipelines"
+        },
+        "annotations": []
+    }
+}
